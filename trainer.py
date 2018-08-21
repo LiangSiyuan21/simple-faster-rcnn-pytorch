@@ -227,7 +227,7 @@ class FasterRCNNTrainer(nn.Module):
     def update_meters(self, losses):
         loss_d = {k: at.scalar(v) for k, v in losses._asdict().items()}
         for key, meter in self.meters.items():
-            meter.add(loss_d[key])
+            meter.add(loss_d[key].detach())
 
     def reset_meters(self):
         for key, meter in self.meters.items():
@@ -430,7 +430,7 @@ class VictimFasterRCNNTrainer(nn.Module):
 
 
     def train_step(self, imgs, bboxes, labels, scale):
-        if not self.attack_mode:
+        if self.attack_mode is None:
             self.optimizer.zero_grad()
             losses  = self.forward(imgs, bboxes, labels, scale)
             try:
@@ -439,12 +439,24 @@ class VictimFasterRCNNTrainer(nn.Module):
                 self.update_meters(losses)
             except:
                 pass
+        elif self.attack_mode == 'train_adv':
+            self.optimizer.zero_grad()
+            losses  = self.forward(imgs, bboxes, labels, scale)
+            try:
+                losses.total_loss.backward()
+                self.optimizer.step()
+                self.update_meters(losses)
+            except:
+                pass
+            adv_losses = self.attacker.forward(imgs,self, labels, bboxes, scale)
+            adv_losses = LossTupleAdv(*adv_losses)
+            self.update_meters(adv_losses,adv=True)
         else:
             adv_losses = self.attacker.forward(imgs,self, labels, bboxes, scale)
             adv_losses = LossTupleAdv(*adv_losses)
             self.update_meters(adv_losses,adv=True)
 
-    def save(self, save_optimizer=False, save_path=None, save_rcnn = True, **kwargs):
+    def save(self, save_optimizer=False, save_path=None, save_rcnn=True, **kwargs):
         """serialize models include optimizer and other info
         return path where the model-file is stored.
 
@@ -468,12 +480,12 @@ class VictimFasterRCNNTrainer(nn.Module):
 
         if save_path is None:
             timestr = time.strftime('%m%d%H%M')
-            save_path = 'checkpoints/fasterrcnn_full_%s' % timestr
-            if not self.attack_mode:
+            save_path = 'checkpoints/fasterrcnn_full_hd'
+            if self.attack_mode is None:
                 for k_, v_ in kwargs.items():
                     save_path += '_%s' % v_
             if self.attacker is not None:
-                self.attacker.save('checkpoints/max_min_attack_6.pth')
+                self.attacker.save('checkpoints/max_min_attack_hd.pth')
         if save_rcnn:
             t.save(save_dict, save_path)
         self.vis.save([self.vis.env])
@@ -537,5 +549,5 @@ def _fast_rcnn_loc_loss(pred_loc, gt_loc, gt_label, sigma):
     in_weight[(gt_label > 0).view(-1, 1).expand_as(in_weight).cuda()] = 1
     loc_loss = _smooth_l1_loss(pred_loc, gt_loc, Variable(in_weight), sigma)
     # Normalize by total number of negtive and positive rois.
-    loc_loss /= (gt_label >= 0).sum()  # ignore gt_label==-1 for rpn_loss
+    loc_loss /= (gt_label >= 0).sum().float()  # ignore gt_label==-1 for rpn_loss
     return loc_loss

@@ -8,13 +8,13 @@ from pprint import pprint
 class Config:
     # data
     voc_data_dir = '/home/joey/Desktop/faster-rcnn.pytorch/VOCdevkit/VOC2007/'
-    wider_label_dir = '/home/joey/Desktop/simple-faster-rcnn-pytorch/datasets/wider_face_split'
-    wider_data_dir =  '/home/joey/Desktop/simple-faster-rcnn-pytorch/datasets/WIDER_train/images'
+    wider_label_dir = '/home/ec2-user/simple-faster-rcnn-pytorch/datasets/wider_face_split'
+    wider_data_dir =  '/home/ec2-user/simple-faster-rcnn-pytorch/datasets/WIDER_train/images'
     wider_fname_mat = 'wider_face_train.mat'
-    wider_val_data_dir = '/home/joey/Desktop/simple-faster-rcnn-pytorch/datasets/WIDER_val/images'
+    wider_val_data_dir = '/home/ec2-user/simple-faster-rcnn-pytorch/datasets/WIDER_val/images'
     wider_val_fname_mat = 'wider_face_val.mat'
-    min_size = 600  # image resize
-    max_size = 800 # image resize
+    min_size = 1920  # image resize
+    max_size = 1080 # image resize
     num_workers = 8
     test_num_workers = 8
 
@@ -50,8 +50,9 @@ class Config:
 
     test_num = 3000
     # model
-    load_path = '/home/joey/Desktop/simple-faster-rcnn-pytorch/checkpoints/fasterrcnn_full_03172016_10'
-    load_attacker = '/home/joey/Desktop/simple-faster-rcnn-pytorch/checkpoints/max_min_attack_4.pth'
+    load_path = None
+    # load_path = '/home/joey/Desktop/simple-faster-rcnn-pytorch/checkpoints/fasterrcnn_full_03172016_10'
+    # load_attacker = '/home/joey/Desktop/simple-faster-rcnn-pytorch/checkpoints/max_min_attack_4.pth'
     # load_path = '/home/joey/Desktop/simple-faster-rcnn-pytorch/checkpoints/fasterrcnn_02050841_13'
 
     caffe_pretrain = False # use caffe pretrained model instead of torchvision

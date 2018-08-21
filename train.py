@@ -9,10 +9,11 @@ from data.dataset import Dataset, TestDataset, inverse_normalize
 from model import FasterRCNNVGG16
 from torch.autograd import Variable
 from torch.utils import data as data_
-from trainer import FasterRCNNTrainer
+from trainer import FasterRCNNTrainer,VictimFasterRCNNTrainer
 from utils import array_tool as at
 from utils.vis_tool import visdom_bbox
 from utils.eval_tool import eval_detection_voc
+import attacks
 # fix for ulimit
 # https://github.com/pytorch/pytorch/issues/973#issuecomment-346405667
 import resource
@@ -62,7 +63,8 @@ def train(**kwargs):
     faster_rcnn = FasterRCNNVGG16()
     attacker = attacks.DCGAN(train_adv=False)
     print('model construct completed')
-    trainer = VictimFasterRCNNTrainer(faster_rcnn,attacker).cuda()
+    trainer = VictimFasterRCNNTrainer(faster_rcnn,attacker,attack_mode='train_adv').cuda()
+    # trainer = FasterRCNNTrainer(faster_rcnn).cuda()
     if opt.load_path:
         trainer.load(opt.load_path)
         print('load pretrained model from %s' % opt.load_path)
@@ -77,6 +79,7 @@ def train(**kwargs):
             scale = at.scalar(scale)
             img, bbox, label = img.cuda().float(), bbox_.cuda(), label_.cuda()
             img, bbox, label = Variable(img), Variable(bbox), Variable(label)
+            ipdb.set_trace()
             losses,adv_inputs = trainer.train_step(img, bbox, label, scale)
 
             if (ii + 1) % opt.plot_every == 0:
@@ -126,9 +129,9 @@ def train(**kwargs):
                                                   # str(eval_result['map']),
                                                   # str(trainer.get_meter_data()))
         # trainer.vis.log(log_info)
-        if epoch == 13:
-            best_path = trainer.save(epochs=epoch)
-            break
+        # if epoch == 5:
+        best_path = trainer.save(epochs=epoch)
+            # break
 
 if __name__ == '__main__':
     import fire
