@@ -1,32 +1,23 @@
 from __future__ import division
 import os
 from PIL import Image
-from wider import WIDER
 from skimage import transform as sktsf
 from data.dataset import Dataset, TestDataset,inverse_normalize
 from data.dataset import pytorch_normalze
 import numpy as np
-import ipdb
+import pdb
 import torch
 import matplotlib
 from torch.utils.data import Dataset, DataLoader
 import matplotlib.pyplot as plt
-from tqdm import tqdm
 from utils.config import opt
-from model import FasterRCNNVGG16
 from torch.autograd import Variable
 from torch.utils import data as data_
-from trainer import FasterRCNNTrainer,VictimFasterRCNNTrainer
 from utils import array_tool as at
-import utils.vis_tool as vz
-from utils.vis_tool import visdom_bbox
-from utils.vis_tool import vis_bbox,visdom_bbox
-from utils.eval_tool import eval_detection_voc
 from data.util import  read_image
 import pandas as pd
 from PIL import Image
 import attacks
-import cv2
 import argparse
 
 WIDER_BBOX_LABEL_NAMES = (
@@ -101,7 +92,6 @@ def add_bbox(ax,bbox,label,score):
 
 if __name__ == '__main__':
     args = parser.parse_args()
-    faster_rcnn = FasterRCNNVGG16()
     attacker = attacks.DCGAN(train_adv=False)
     attacker.load('min_max_attack.pth')
     img = read_image('stock_1.jpg')

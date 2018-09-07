@@ -10,7 +10,6 @@ import pandas as pd
 from utils.config import opt
 from util import  read_image
 import torch
-import ipdb
 
 def inverse_normalize(img):
     if opt.caffe_pretrain:

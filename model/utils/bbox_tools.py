@@ -1,7 +1,6 @@
 from __future__ import division
 import numpy as np
 import numpy as xp
-import ipdb
 import six
 from six import __init__
 

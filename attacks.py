@@ -1,9 +1,7 @@
 import torch
-import cv2
 from utils import array_tool as at
 from data.dataset import preprocess,inverse_normalize
 import numpy as np
-import ipdb
 import pdb
 from torch.autograd import Variable
 import torch.nn as nn
