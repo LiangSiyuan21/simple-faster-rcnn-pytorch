@@ -7,8 +7,10 @@ import torch.optim as optim
 import torch.backends.cudnn as cudnn
 import torch.optim as optim
 import numpy as np
-import pdb
+from torchvision import transforms as tvtsf
+import ipdb
 import torch
+from skimage import transform as sktsf
 from torch.autograd import Variable
 from torch.utils import data as data_
 from PIL import Image
@@ -70,7 +72,7 @@ def pytorch_normalze(img):
                                 # std=[0.229, 0.224, 0.225])
     normalize = tvtsf.Normalize(mean=[0.5, 0.5, 0.5],
                                 std=[0.5, 0.5, 0.5])
-    img = normalize(t.from_numpy(img))
+    img = normalize(torch.from_numpy(img))
     return img.numpy()
 
 def preprocess(img, min_size=600, max_size=1000):
@@ -281,6 +283,14 @@ class DCGAN(nn.Module):
 	def load(self, fn):
 		self.generator.load_state_dict(torch.load(fn))
 
+def tonumpy(data):
+    if isinstance(data, np.ndarray):
+        return data
+    if isinstance(data, torch._C._TensorBase) and (data.requires_grad==False):
+        return data.cpu().numpy()
+    if isinstance(data, torch.autograd.Variable):
+        return tonumpy(data.data)
+
 def model_fn(model_dir):
     device = "cuda" if torch.cuda.is_available() else "cpu"
     model = attacks.DCGAN(train_adv=False)
@@ -294,16 +304,16 @@ def model_fn(model_dir):
 if __name__ == '__main__':
     args = parser.parse_args()
     attacker = DCGAN(train_adv=False)
-    attacker.load('min_max_attack.pth')
+    attacker.load('checkpoints/max_min_attack_6.pth')
     img = read_image('stock_1.jpg')
     img = preprocess(img)
     img = torch.from_numpy(img)[None]
     im_path = 'stock_1.jpg'
     img = Variable(img.float().cuda())
     im_path_clone = b = '%s' % im_path
-    ori_img_ = inverse_normalize(at.tonumpy(img[0]))
+    ori_img_ = inverse_normalize(tonumpy(img[0]))
     adv_img = attacker.perturb(img,epsilon=args.ep)
-    adv_img_ = inverse_normalize(at.tonumpy(adv_img[0]))
+    adv_img_ = inverse_normalize(tonumpy(adv_img[0]))
     ori_img_ = ori_img_.transpose((1,2,0))
     adv_img_ = adv_img_.transpose((1,2,0))
 
